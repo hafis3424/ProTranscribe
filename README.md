@@ -21,15 +21,7 @@ ProTranscribe is a lightweight web application designed to provide quick and acc
 The project is currently in the UI/UX design phase.  
 The initial focus is to create a clean landing page similar to modern transcription tools, followed by integrating the transcription engine.
 
-## Folder Structure (Planned)
-ProTranscribe/
-│── index.html
-│── assets/
-│ ├── css/
-│ ├── js/
-│ └── images/
-│── backend/ (planned)
-│── README.md
+
 
 
 ## Upcoming Enhancements

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ProTranscribe - Ultra Fast YouTube Transcription</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "accent": "#a7f02a",
+                        "white": "#ffffff",
+                        "black": "#000000",
+                        "gray-light": "#f0f0f0",
+                        "gray-dark": "#1a1a1a",
+                        "text-light": "#000000",
+                        "text-dark": "#ffffff",
+                        "border-light": "#e0e0e0",
+                        "border-dark": "#333333",
+                        "placeholder-light": "#999999",
+                        "placeholder-dark": "#666666"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Space Grotesk", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+
+        .dark body {
+            background-color: #000000;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes contentFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .transcript-content {
+            animation: contentFadeIn 0.5s ease 0.2s both;
+        }
+
+        .transcript-text {
+            line-height: 1.9;
+        }
+
+        /* Scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #444;
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Button hover effects */
+        .action-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-black font-body text-text-light dark:text-text-dark overflow-x-hidden">
+    <!-- Main Content -->
+    <div class="relative flex min-h-screen w-full flex-col">
+        <!-- Hero Section -->
+        <div id="hero-section"
+            class="w-full flex flex-1 justify-center items-center py-12 sm:py-20 lg:py-28 transition-all duration-300">
+            <div class="layout-content-container flex flex-col max-w-[800px] flex-1 px-4 sm:px-10 lg:px-40">
+                <div class="@container">
+                    <div class="flex flex-col gap-6 items-center justify-center text-center">
+                        <div class="flex flex-col gap-3 max-w-[600px]">
+                            <h1
+                                class="text-text-light dark:text-text-dark text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-[-0.03em] uppercase">
+                                Transcribe YouTube. Fast.
+                            </h1>
+                            <p
+                                class="text-text-light dark:text-text-dark text-lg sm:text-xl font-normal leading-relaxed max-w-[600px] mx-auto opacity-80">
+                                Convert any video to text.
+                            </p>
+                        </div>
+                        <div class="w-full max-w-[640px] mt-6 relative group">
+                            <label
+                                class="flex flex-col w-full h-14 sm:h-16 relative z-10 shadow-sm rounded-lg transition-all duration-300 group-focus-within:shadow-md group-focus-within:shadow-accent/30">
+                                <div
+                                    class="flex w-full flex-1 items-stretch rounded-lg h-full bg-white dark:bg-gray-dark overflow-hidden border border-border-light dark:border-border-dark focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30 transition-all">
+                                    <div
+                                        class="text-placeholder-light dark:text-placeholder-dark flex items-center justify-center pl-4 sm:pl-5 bg-transparent">
+                                        <span class="material-symbols-outlined text-[24px]">link</span>
+                                    </div>
+                                    <input id="youtube-url"
+                                        class="flex w-full min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:outline-0 focus:ring-0 border-0 h-full px-4 text-base sm:text-lg font-normal leading-normal"
+                                        placeholder="Paste YouTube URL..." value="" />
+                                    <div class="flex items-center justify-center pr-2">
+                                        <button id="transcribe-btn"
+                                            class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-10 sm:h-12 px-4 sm:px-6 bg-accent text-black text-sm sm:text-base font-bold leading-normal tracking-[0.015em] hover:bg-accent/80 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100">
+                                            <span id="btn-text" class="truncate">Transcribe</span>
+                                            <span id="btn-loader"
+                                                class="hidden material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </label>
+                            <div
+                                class="absolute -inset-1 bg-gradient-to-r from-accent/30 to-accent/50 rounded-lg blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10">
+                            </div>
+                        </div>
+                        <!-- Error Message -->
+                        <div id="error-message" class="hidden flex items-center gap-2 mt-2 text-sm text-red-500">
+                            <span class="material-symbols-outlined text-[18px]">error</span>
+                            <span id="error-text"></span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2 mt-4 text-sm text-placeholder-light dark:text-placeholder-dark">
+                            <span class="material-symbols-outlined text-[18px] text-accent">check_circle</span>
+                            <span>Free trial. No card.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar"
+        class="sidebar fixed top-0 right-0 h-full w-full sm:w-[500px] md:w-[550px] lg:w-[600px] bg-white dark:bg-black border-l border-border-light dark:border-border-dark z-50 flex flex-col shadow-2xl">
+        <!-- Sidebar Header -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-border-light dark:border-border-dark">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10">
+                    <span class="material-symbols-outlined text-accent text-[22px]">description</span>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold">Transcript</h2>
+                    <p id="video-id-display" class="text-xs text-placeholder-light dark:text-placeholder-dark"></p>
+                </div>
+            </div>
+            <button id="close-btn"
+                class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-light dark:hover:bg-gray-dark transition-colors">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 px-6 py-4 border-b border-border-light dark:border-border-dark">
+            <button id="copy-btn"
+                class="action-btn flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-light dark:bg-gray-dark hover:bg-border-light dark:hover:bg-border-dark transition-all text-sm font-medium">
+                <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                <span>Copy</span>
+            </button>
+            <button id="download-btn"
+                class="action-btn flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-accent text-black hover:bg-accent/80 transition-all text-sm font-bold">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                <span>Download</span>
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div
+            class="flex items-center gap-4 px-6 py-3 bg-gray-light/50 dark:bg-gray-dark/50 text-xs text-placeholder-light dark:text-placeholder-dark">
+            <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">text_fields</span>
+                <span id="word-count">0 words</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">tag</span>
+                <span id="char-count">0 chars</span>
+            </div>
+        </div>
+
+        <!-- Transcript Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <div id="transcript-content"
+                class="transcript-content transcript-text px-6 py-6 text-base text-text-light dark:text-text-dark whitespace-pre-wrap">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 px-5 py-3 bg-gray-dark dark:bg-white text-white dark:text-black rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-[60]">
+        <span id="toast-icon" class="material-symbols-outlined text-[20px] text-accent">check_circle</span>
+        <span id="toast-text" class="text-sm font-medium"></span>
+    </div>
+
+    <script>
+        // DOM Elements
+        const urlInput = document.getElementById('youtube-url');
+        const transcribeBtn = document.getElementById('transcribe-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const transcriptContent = document.getElementById('transcript-content');
+        const videoIdDisplay = document.getElementById('video-id-display');
+        const wordCount = document.getElementById('word-count');
+        const charCount = document.getElementById('char-count');
+        const toast = document.getElementById('toast');
+        const toastText = document.getElementById('toast-text');
+
+        let currentTranscript = '';
+        let currentVideoId = '';
+
+        // Extract video ID from YouTube URL
+        function extractVideoId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+                /^([a-zA-Z0-9_-]{11})$/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        // Show error
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            errorMessage.style.animation = 'contentFadeIn 0.3s ease';
+        }
+
+        // Hide error
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            toastText.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Set loading state
+        function setLoading(loading) {
+            transcribeBtn.disabled = loading;
+            btnText.classList.toggle('hidden', loading);
+            btnLoader.classList.toggle('hidden', !loading);
+        }
+
+        // Open sidebar
+        function openSidebar() {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close sidebar
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Show results in sidebar
+        function showResults(transcript, videoId) {
+            currentTranscript = transcript;
+            currentVideoId = videoId;
+
+            transcriptContent.textContent = transcript;
+            videoIdDisplay.textContent = `ID: ${videoId}`;
+
+            const words = transcript.split(/\s+/).filter(w => w.length > 0).length;
+            const chars = transcript.length;
+            wordCount.textContent = `${words.toLocaleString()} words`;
+            charCount.textContent = `${chars.toLocaleString()} chars`;
+
+            // Reset animation
+            transcriptContent.style.animation = 'none';
+            transcriptContent.offsetHeight; // Trigger reflow
+            transcriptContent.style.animation = 'contentFadeIn 0.5s ease 0.2s both';
+
+            openSidebar();
+        }
+
+        // Copy transcript
+        async function copyTranscript() {
+            try {
+                await navigator.clipboard.writeText(currentTranscript);
+                showToast('Copied to clipboard!');
+            } catch (err) {
+                showToast('Failed to copy');
+            }
+        }
+
+        // Download transcript
+        function downloadTranscript() {
+            const blob = new Blob([currentTranscript], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transcript-${currentVideoId}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Downloaded!');
+        }
+
+        // Fetch transcript
+        async function fetchTranscript() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                showError('Please enter a YouTube URL');
+                return;
+            }
+
+            const videoId = extractVideoId(url);
+            if (!videoId) {
+                showError('Invalid YouTube URL');
+                return;
+            }
+
+            hideError();
+            setLoading(true);
+
+            try {
+                const response = await fetch(`/api/transcript?videoId=${videoId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch transcript');
+                }
+
+                showResults(data.fullText, videoId);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Event listeners
+        transcribeBtn.addEventListener('click', fetchTranscript);
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fetchTranscript();
+        });
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+        copyBtn.addEventListener('click', copyTranscript);
+        downloadBtn.addEventListener('click', downloadTranscript);
+
+        // Keyboard shortcut to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                closeSidebar();
+            }
+        });
+    </script>
+</body>
+
+</html>
